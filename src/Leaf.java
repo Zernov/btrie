@@ -27,7 +27,7 @@ public class Leaf extends Node{
     public String toString() {
 
         String result = "";
-        result += String.valueOf((char)(from + 97)) + "-" + String.valueOf((char)(to + 97)) + " { ";
+        result += String.valueOf((char)(from)) + "-" + String.valueOf((char)(to)) + " { ";
         for (int i = 0; i < words.size() - 1; i++) {
             result += words.get(i) + ", ";
         }
