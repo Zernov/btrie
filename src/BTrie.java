@@ -1,5 +1,3 @@
-import java.util.ArrayList;
-
 public class BTrie {
 
     private TrieNode root;

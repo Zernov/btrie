@@ -2,7 +2,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 
 public class Bucket extends Node{
-
     public int from;
     public int to;
     public String prefix;
@@ -40,6 +39,18 @@ public class Bucket extends Node{
     public boolean add(String item, String prefix) {
         this.items.add(item);
         Collections.sort(this.items);
-        return this.items.size() > 1;
+        return full();
+    }
+
+    public int sum() {
+        int result = 0;
+        for(String item: this.items) {
+            result += item.length();
+        }
+        return result;
+    }
+
+    public boolean full() {
+        return sum() > Global.CAP;
     }
 }
