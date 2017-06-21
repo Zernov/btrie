@@ -1,6 +1,5 @@
 public abstract class Node {
 
-    public abstract boolean isLeaf();
-    public abstract String toString();
-    public abstract boolean add(String word);
+    public abstract boolean isBucket();
+    public abstract boolean add(String item, String prefix);
 }
