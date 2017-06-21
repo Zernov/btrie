@@ -47,7 +47,6 @@ public class TrieNode extends Node {
                             for (int i = 0; i < bucket.items.size(); i++) {
                                 bucket.items.set(i, bucket.items.get(i).substring(1));
                             }
-                            borders = getNeighbouringItems(bucket.items);
                             bucket.from = 0;
                             bucket.to = Global.SIZE - 1;
                             TrieNode trieNode = new TrieNode();
@@ -87,10 +86,6 @@ public class TrieNode extends Node {
             this.first = first;
             this.second = second;
         }
-    }
-
-    private void truncate(Node[] nodes, Bucket bucket, String prefix) {
-
     }
 
     private void split(Node[] nodes, Bucket bucket, String prefix, Pair borders) {
