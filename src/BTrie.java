@@ -7,7 +7,7 @@ public class BTrie {
     }
 
     public boolean has(String item) {
-        return root.has(item);
+        return root.has(item, "");
     }
 
     public BTrie() {

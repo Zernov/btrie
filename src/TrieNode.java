@@ -15,83 +15,92 @@ public class TrieNode extends Node {
     public boolean isBucket() { return false; }
 
     public boolean add(String item, String prefix) {
-        int index = (int)item.charAt(0) - Global.FROM;
-        if (children[index] != null) {
-            boolean split;
-            if (children[index].isBucket()) {
-                Bucket bucket = (Bucket)children[index];
-                if (bucket.isPure()) {
-                    split = children[index].add(item.substring(1), (prefix + item.charAt(0)));
-                    if (split) {
-                        bucket.from = 0;
-                        bucket.to = Global.SIZE - 1;
-                        TrieNode trieNode = new TrieNode();
-                        trieNode.prefix = (prefix + item.charAt(0));
-                        for (int i = 0; i < bucket.items.size(); i++) {
-                            trieNode.children[i] = bucket;
-                        }
-                        this.children[index] = trieNode;
-                        Pair borders = getNeighbouringItems(bucket.items);
-                        splitHybrid(trieNode.children, bucket, bucket.prefix, borders);
-                        split = false;
-                    }
-                } else {
-                    split = children[index].add(item, prefix);
-                    if (split) {
-                        Pair borders = getNeighbouringItems(bucket.items);
-                        if (borders.first == -1) {
-                            bucket.prefix += bucket.items.get(0).charAt(0);
-                            for (int i = bucket.from; i < bucket.to + 1; i++) {
-                                this.children[i] = null;
-                            }
-                            for (int i = 0; i < bucket.items.size(); i++) {
-                                bucket.items.set(i, bucket.items.get(i).substring(1));
-                            }
+        if (item.length() > 0) {
+            int index = (int) item.charAt(0) - Global.FROM;
+            if (children[index] != null) {
+                boolean split;
+                if (children[index].isBucket()) {
+                    Bucket bucket = (Bucket) children[index];
+                    if (bucket.isPure()) {
+                        split = children[index].add(item.substring(1), (prefix + item.charAt(0)));
+                        if (split) {
                             bucket.from = 0;
                             bucket.to = Global.SIZE - 1;
                             TrieNode trieNode = new TrieNode();
-                            trieNode.prefix = bucket.prefix;
-                            for (int i = 0; i < trieNode.children.length; i++) {
+                            trieNode.prefix = (prefix + item.charAt(0));
+                            for (int i = 0; i < bucket.items.size(); i++) {
                                 trieNode.children[i] = bucket;
                             }
                             this.children[index] = trieNode;
-                            borders = getNeighbouringItems(bucket.items);
+                            Pair borders = getNeighbouringItems(bucket.items);
                             splitHybrid(trieNode.children, bucket, bucket.prefix, borders);
-                        } else {
-                            splitHybrid(this.children, bucket, prefix, borders);
+                            split = false;
                         }
-                        split = false;
+                    } else {
+                        split = children[index].add(item, prefix);
+                        if (split) {
+                            Pair borders = getNeighbouringItems(bucket.items);
+                            if (borders.first == -1) {
+                                bucket.prefix += bucket.items.get(0).charAt(0);
+                                for (int i = bucket.from; i < bucket.to + 1; i++) {
+                                    this.children[i] = null;
+                                }
+                                for (int i = 0; i < bucket.items.size(); i++) {
+                                    bucket.items.set(i, bucket.items.get(i).substring(1));
+                                }
+                                bucket.from = 0;
+                                bucket.to = Global.SIZE - 1;
+                                TrieNode trieNode = new TrieNode();
+                                trieNode.prefix = bucket.prefix;
+                                for (int i = 0; i < trieNode.children.length; i++) {
+                                    trieNode.children[i] = bucket;
+                                }
+                                this.children[index] = trieNode;
+                                borders = getNeighbouringItems(bucket.items);
+                                splitHybrid(trieNode.children, bucket, bucket.prefix, borders);
+                            } else {
+                                splitHybrid(this.children, bucket, prefix, borders);
+                            }
+                            split = false;
+                        }
                     }
+                } else {
+                    split = children[index].add(item.substring(1), (prefix + item.charAt(0)));
                 }
+                return split;
             } else {
-                split = children[index].add(item.substring(1), (prefix + item.charAt(0)));
+                Pair borders = getNeighbouringNullPointers(children, index);
+                ArrayList<String> items = new ArrayList<>();
+                items.add(item);
+                Bucket bucket = new Bucket(borders.first, borders.second, prefix, items);
+                for (int i = borders.first; i < borders.second + 1; i++) {
+                    this.children[i] = bucket;
+                }
+                return false;
             }
-            return split;
         } else {
-            Pair borders = getNeighbouringNullPointers(children, index);
-            ArrayList<String> items = new ArrayList<>();
-            items.add(item);
-            Bucket bucket = new Bucket(borders.first, borders.second, prefix, items);
-            for (int i = borders.first; i < borders.second + 1; i++) {
-                this.children[i] = bucket;
-            }
+            Global.hash.put(prefix, prefix.length());
             return false;
         }
     }
 
-    public boolean has(String item) {
-        int index = (int)item.charAt(0) - Global.FROM;
-        if (this.children[index] != null) {
-            if (this.children[index].isBucket()) {
-                Bucket bucket = (Bucket) this.children[index];
-                if (bucket.isPure()) {
-                    return bucket.has(item.substring(1));
+    public boolean has(String item, String prefix) {
+        if (item.length() > 0) {
+            int index = (int) item.charAt(0) - Global.FROM;
+            if (this.children[index] != null) {
+                if (this.children[index].isBucket()) {
+                    Bucket bucket = (Bucket) this.children[index];
+                    if (bucket.isPure()) {
+                        return bucket.has(item.substring(1), prefix + item.charAt(0));
+                    }
+                    return bucket.has(item, prefix);
                 }
-                return bucket.has(item);
+                return this.children[index].has(item.substring(1), prefix + item.charAt(0));
             }
-            return this.children[index].has(item.substring(1));
+            return false;
+        } else {
+            return Global.hash.containsKey(prefix);
         }
-        return false;
     }
 
     private class Pair {
@@ -195,8 +204,14 @@ public class TrieNode extends Node {
         }
         if (firstMove) {
             first--;
+            while (second > 0 && array.get(second).charAt(0) == array.get(second - 1).charAt(0)) {
+                second--;
+            }
         } else {
             second++;
+            while (array.get(first).charAt(0) == array.get(first + 1).charAt(0)) {
+                first++;
+            }
         }
         return new Pair(first, second);
     }

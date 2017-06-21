@@ -26,5 +26,7 @@ public class Main {
             i += btrie.has(item) ? 1 : 0;
         }
         System.out.println((float)i / (float)items.size());
+        System.out.println(btrie.has("MASHA"));
+        System.out.println();
     }
 }
