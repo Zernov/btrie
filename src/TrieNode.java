@@ -81,7 +81,17 @@ public class TrieNode extends Node {
 
     public boolean has(String item) {
         int index = (int)item.charAt(0) - Global.FROM;
-        return this.children[index].has(item.substring(1));
+        if (this.children[index] != null) {
+            if (this.children[index].isBucket()) {
+                Bucket bucket = (Bucket) this.children[index];
+                if (bucket.isPure()) {
+                    return bucket.has(item.substring(1));
+                }
+                return bucket.has(item);
+            }
+            return this.children[index].has(item.substring(1));
+        }
+        return false;
     }
 
     private class Pair {
@@ -122,8 +132,8 @@ public class TrieNode extends Node {
         if (borders.first != - 1) {
 
             ArrayList<String> firstItems = new ArrayList<>();
-            firstItems.add(bucket.items.get(borders.first));
-            for (int i = 0; i < borders.first; i++) {
+            //firstItems.add(bucket.items.get(borders.first));
+            for (int i = 0; i <= borders.first; i++) {
                 firstItems.add(bucket.items.get(i));
             }
             int firstFrom = (int) firstItems.get(0).charAt(0) - Global.FROM;
@@ -131,8 +141,8 @@ public class TrieNode extends Node {
             Bucket firstBucket = new Bucket(firstFrom, firstTo, prefix, firstItems);
 
             ArrayList<String> secondItems = new ArrayList<>();
-            secondItems.add(bucket.items.get(borders.second));
-            for (int i = borders.second; i < bucket.items.size() - 1; i++) {
+            //secondItems.add(bucket.items.get(borders.second));
+            for (int i = borders.second; i < bucket.items.size(); i++) {
                 secondItems.add(bucket.items.get(i));
             }
             int secondFrom = (int) secondItems.get(0).charAt(0) - Global.FROM;
