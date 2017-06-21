@@ -13,9 +13,8 @@ public class Bucket extends Node{
         this.prefix = prefix;
         this.items = new ArrayList<>();
         if (this.from == this.to) {
-            this.prefix += items.get(0).charAt(0);
             for (int i = 0; i < items.size(); i++) {
-                String item = items.get(i).substring(1);
+                String item = items.get(i);
                 if (item.length() == 0) {
                     Global.hash.put(this.prefix, this.prefix.length());
                 } else {
@@ -40,6 +39,10 @@ public class Bucket extends Node{
         this.items.add(item);
         Collections.sort(this.items);
         return full();
+    }
+
+    public boolean has(String item) {
+        return items.contains(item);
     }
 
     public int sum() {

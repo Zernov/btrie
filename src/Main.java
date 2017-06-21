@@ -20,6 +20,6 @@ public class Main {
         for (String item: items) {
             btrie.add(item);
         }
-        System.out.println(Global.hash);
+        System.out.println(btrie.has("sha-julin.livejournal.com"));
     }
 }

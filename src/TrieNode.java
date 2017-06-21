@@ -32,7 +32,7 @@ public class TrieNode extends Node {
                         }
                         this.children[index] = trieNode;
                         Pair borders = getNeighbouringItems(bucket.items);
-                        split(trieNode.children, bucket, bucket.prefix, borders);
+                        splitHybrid(trieNode.children, bucket, bucket.prefix, borders);
                         split = false;
                     }
                 } else {
@@ -55,9 +55,10 @@ public class TrieNode extends Node {
                                 trieNode.children[i] = bucket;
                             }
                             this.children[index] = trieNode;
-                            split(trieNode.children, bucket, bucket.prefix, borders);
+                            borders = getNeighbouringItems(bucket.items);
+                            splitHybrid(trieNode.children, bucket, bucket.prefix, borders);
                         } else {
-                            split(this.children, bucket, prefix, borders);
+                            splitHybrid(this.children, bucket, prefix, borders);
                         }
                         split = false;
                     }
@@ -78,6 +79,11 @@ public class TrieNode extends Node {
         }
     }
 
+    public boolean has(String item) {
+        int index = (int)item.charAt(0) - Global.FROM;
+        return this.children[index].has(item.substring(1));
+    }
+
     private class Pair {
         private int first;
         private int second;
@@ -88,40 +94,68 @@ public class TrieNode extends Node {
         }
     }
 
-    private void split(Node[] nodes, Bucket bucket, String prefix, Pair borders) {
+    private void splitPure(Node[] nodes, Bucket bucket, String prefix) {
 
-        ArrayList<String> firstItems = new ArrayList<>();
-        firstItems.add(bucket.items.get(borders.first));
-        for (int i = 0; i < borders.first; i++) {
-            firstItems.add(bucket.items.get(i));
-        }
-        int firstFrom = (int)firstItems.get(0).charAt(0) - Global.FROM;
-        int firstTo = (int)firstItems.get(firstItems.size() - 1).charAt(0) - Global.FROM;
-        Bucket firstBucket = new Bucket(firstFrom, firstTo, prefix, firstItems);
-
-        ArrayList<String> secondItems = new ArrayList<>();
-        secondItems.add(bucket.items.get(borders.second));
-        for (int i = borders.second; i < bucket.items.size() - 1; i++) {
-            secondItems.add(bucket.items.get(i));
-        }
-        int secondFrom = (int)secondItems.get(0).charAt(0) - Global.FROM;
-        int secondTo = (int)secondItems.get(secondItems.size() - 1).charAt(0) - Global.FROM;
-        Bucket secondBucket = new Bucket(secondFrom, secondTo, prefix, secondItems);
-
-        for (int i = 0; i < firstFrom; i++) {
+        int index = (int)bucket.items.get(0).charAt(0) - Global.FROM;
+        bucket.prefix += bucket.items.get(0).charAt(0);
+        for (int i = bucket.from; i < bucket.to + 1; i++) {
             nodes[i] = null;
         }
-        for (int i = firstFrom; i < firstTo + 1; i++) {
-            nodes[i] = firstBucket;
+        for (int i = 0; i < bucket.items.size(); i++) {
+            bucket.items.set(i, bucket.items.get(i).substring(1));
         }
-        for (int i = firstTo + 1; i < secondFrom; i++) {
-            nodes[i] = null;
+        bucket.from = 0;
+        bucket.to = Global.SIZE - 1;
+        TrieNode trieNode = new TrieNode();
+        trieNode.prefix = bucket.prefix;
+        for (int i = 0; i < trieNode.children.length; i++) {
+            trieNode.children[i] = bucket;
         }
-        for (int i = secondFrom; i < secondTo + 1; i++) {
-            nodes[i] = secondBucket;
-        }
-        for (int i = secondTo + 1; i < nodes.length; i++) {
-            nodes[i] = null;
+        nodes[index] = trieNode;
+        Pair borders = getNeighbouringItems(bucket.items);
+        splitHybrid(trieNode.children, bucket, prefix, borders);
+
+    }
+
+    private void splitHybrid(Node[] nodes, Bucket bucket, String prefix, Pair borders) {
+
+        if (borders.first != - 1) {
+
+            ArrayList<String> firstItems = new ArrayList<>();
+            firstItems.add(bucket.items.get(borders.first));
+            for (int i = 0; i < borders.first; i++) {
+                firstItems.add(bucket.items.get(i));
+            }
+            int firstFrom = (int) firstItems.get(0).charAt(0) - Global.FROM;
+            int firstTo = (int) firstItems.get(firstItems.size() - 1).charAt(0) - Global.FROM;
+            Bucket firstBucket = new Bucket(firstFrom, firstTo, prefix, firstItems);
+
+            ArrayList<String> secondItems = new ArrayList<>();
+            secondItems.add(bucket.items.get(borders.second));
+            for (int i = borders.second; i < bucket.items.size() - 1; i++) {
+                secondItems.add(bucket.items.get(i));
+            }
+            int secondFrom = (int) secondItems.get(0).charAt(0) - Global.FROM;
+            int secondTo = (int) secondItems.get(secondItems.size() - 1).charAt(0) - Global.FROM;
+            Bucket secondBucket = new Bucket(secondFrom, secondTo, prefix, secondItems);
+
+            for (int i = bucket.from; i < firstFrom; i++) {
+                nodes[i] = null;
+            }
+            for (int i = firstFrom; i < firstTo + 1; i++) {
+                nodes[i] = firstBucket;
+            }
+            for (int i = firstTo + 1; i < secondFrom; i++) {
+                nodes[i] = null;
+            }
+            for (int i = secondFrom; i < secondTo + 1; i++) {
+                nodes[i] = secondBucket;
+            }
+            for (int i = secondTo + 1; i < bucket.to + 1; i++) {
+                nodes[i] = null;
+            }
+        } else {
+            splitPure(nodes, bucket, prefix);
         }
     }
 
